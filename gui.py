@@ -30,7 +30,7 @@ def set_screenshot_prevention(window, enable):
 ctk.set_appearance_mode("System")  # System, Dark, Light
 ctk.set_default_color_theme("blue")  # Blue, Green, Dark-blue
 
-DEFAULT_FILE_PATH = r"C:\Users\USER\OneDrive\Desktop\python\Report\passwords.txt"
+DEFAULT_FILE_PATH = r"C:\Users\USER\OneDrive\Desktop\Report\passwords.txt"
 
 def get_file_path():
     # 取得密碼檔案路徑，支援 fallback 到當前目錄
