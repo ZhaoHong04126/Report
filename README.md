@@ -42,12 +42,19 @@
 ## 🚀 快速開始
 
 ### 方式一：直接執行編譯好的 App (.exe)
-打開本機資料夾，點擊進入 `dist` 目錄，雙擊打開 **[專屬密碼管理器.exe](file:///c:/Users/USER/OneDrive/Desktop/python/Report/dist/專屬密碼管理器.exe)** 即可直接啟動程式。
+打開本機資料夾，點擊進入 `dist` 目錄，雙擊打開 **[專屬密碼管理器.exe](file:///c:/Users/USER/OneDrive/Desktop/Report/dist/專屬密碼管理器.exe)** 即可直接啟動程式。
 
 ### 方式二：在 Python 環境中執行
-1. **啟用虛擬環境並安裝依賴**：
+1. **建立虛擬環境 (venv) 並安裝依賴**：
+   如果您尚未建立虛擬環境，請打開終端機並切換至專案根目錄，依序執行以下命令：
    ```powershell
+   # 1. 建立虛擬環境
+   python -m venv .venv
+
+   # 2. 啟用虛擬環境
    .venv\Scripts\activate
+
+   # 3. 安裝依賴套件
    pip install customtkinter cryptography pyinstaller
    ```
 2. **執行 App**：
