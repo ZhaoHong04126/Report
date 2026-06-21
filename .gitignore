@@ -1,1 +1,25 @@
-*.txt 
+# 密碼儲存檔案 (極度重要，絕不能上傳)
+passwords.txt
+*.txt
+
+# Python 快取與虛擬環境
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# PyInstaller 打包產生的暫存與發行檔
+build/
+dist/
+*.spec
+
+# 開發編輯器設定
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
