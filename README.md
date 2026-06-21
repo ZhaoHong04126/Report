@@ -34,9 +34,8 @@
 ## 📂 檔案結構說明
 
 - `gui.py`：桌面圖形化 App 主程式。
-- `main.py`：命令行 (CLI) 舊版密碼管理器（作為備份/命令列使用）。
 - `dist/專屬密碼管理器.exe`：已編譯完成的獨立 Windows 執行檔，免安裝 Python 即可點擊使用。
-- `passwords.txt`：已加密的密碼文字檔（預設存儲於 `C:\Users\USER\OneDrive\Desktop\python\Report\passwords.txt`，並提供當前目錄 fallback 讀取）。
+- `passwords.txt`：已加密的密碼文字檔（預設存儲於 `C:\Users\USER\OneDrive\Desktop\Report\passwords.txt`，並提供當前目錄 fallback 讀取）。
 
 ---
 
