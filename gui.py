@@ -30,7 +30,7 @@ def set_screenshot_prevention(window, enable):
 ctk.set_appearance_mode("System")  # System, Dark, Light
 ctk.set_default_color_theme("blue")  # Blue, Green, Dark-blue
 
-DEFAULT_FILE_PATH = r"C:\Users\USER\OneDrive\Desktop\Report\passwords.txt"
+DEFAULT_FILE_PATH = r"C:\Users\USER\OneDrive\Desktop\python\Report\passwords.txt"
 
 def get_file_path():
     # 取得密碼檔案路徑，支援 fallback 到當前目錄
@@ -116,7 +116,7 @@ class EditDialog(ctk.CTkToplevel):
         self.destroy()
 
 class VerifyMasterPasswordDialog(ctk.CTkToplevel):
-    # 主密碼驗證對話框，包含相機環境偵測
+    # 主密碼驗證對話框
     def __init__(self, parent, callback):
         super().__init__(parent)
         self.title("🔒 安全驗證")
@@ -132,11 +132,11 @@ class VerifyMasterPasswordDialog(ctk.CTkToplevel):
         
         self.callback = callback
         
-        self.title_label = ctk.CTkLabel(self, text="🔑 需要安全驗證", font=("Microsoft JhengHei", 16, "bold"))
-        self.title_label.pack(pady=15)
+        title_label = ctk.CTkLabel(self, text="🔑 需要安全驗證", font=("Microsoft JhengHei", 16, "bold"))
+        title_label.pack(pady=15)
         
-        self.desc_label = ctk.CTkLabel(self, text="請輸入系統主密碼以確認執行此操作:", font=("Microsoft JhengHei", 12))
-        self.desc_label.pack(pady=2)
+        desc_label = ctk.CTkLabel(self, text="請輸入系統主密碼以確認執行此操作:", font=("Microsoft JhengHei", 12))
+        desc_label.pack(pady=2)
         
         self.pwd_entry = ctk.CTkEntry(self, width=220, placeholder_text="請輸入主密碼", show="*")
         self.pwd_entry.pack(pady=10)
@@ -146,106 +146,21 @@ class VerifyMasterPasswordDialog(ctk.CTkToplevel):
         btn_frame = ctk.CTkFrame(self, fg_color="transparent")
         btn_frame.pack(pady=10)
         
-        self.ok_btn = ctk.CTkButton(btn_frame, text="確認", width=90, fg_color="#2b76fb", command=self.verify)
-        self.ok_btn.pack(side="left", padx=5)
+        ok_btn = ctk.CTkButton(btn_frame, text="確認", width=90, fg_color="#2b76fb", command=self.verify)
+        ok_btn.pack(side="left", padx=5)
         
-        self.cancel_btn = ctk.CTkButton(btn_frame, text="取消", width=90, fg_color="#7f8c8d", command=self.destroy)
-        self.cancel_btn.pack(side="left", padx=5)
+        cancel_btn = ctk.CTkButton(btn_frame, text="取消", width=90, fg_color="#7f8c8d", command=self.destroy)
+        cancel_btn.pack(side="left", padx=5)
         
     def verify(self):
         master_pass = "admin596196"
-        if self.pwd_entry.get().strip() != master_pass:
+        if self.pwd_entry.get().strip() == master_pass:
+            self.callback()
+            self.destroy()
+        else:
             messagebox.showerror("驗證失敗", "主密碼錯誤！無法執行此動作。")
             self.pwd_entry.delete(0, "end")
             self.pwd_entry.focus()
-            return
-            
-        # 密碼正確，開始進行環境安全檢測
-        self.pwd_entry.configure(state="disabled")
-        self.ok_btn.configure(state="disabled")
-        self.cancel_btn.configure(state="disabled")
-        self.title_label.configure(text="🛡️ 正在安全檢測...")
-        self.desc_label.configure(text="正在透過攝影機掃描周圍環境，請稍候...")
-        self.update()
-        
-        # 使用 after 延遲 100 毫秒執行，讓 UI 畫面更新
-        self.after(100, self.run_security_check)
-
-    def run_security_check(self):
-        status, face_count = self.detect_faces()
-        
-        if status == "no_camera":
-            # 沒有攝影機，直接通過
-            self.callback()
-            self.destroy()
-        elif status == "success":
-            if face_count == 1:
-                # 只有一張臉 (使用者本人)，安全通過
-                self.callback()
-                self.destroy()
-            elif face_count >= 2:
-                # 兩張臉或以上 (有人窺視)，警告並攔截
-                messagebox.showerror("🚨 安全警報！", f"偵測到有 {face_count} 個人臉在攝影機範圍內！\n系統偵測到有人在旁窺視，為了您的密碼安全，已自動攔截此操作！")
-                self.destroy()
-            else: # face_count == 0
-                # 沒有偵測到人臉
-                messagebox.showwarning("⚠️ 驗證失敗", "攝影機範圍內偵測不到人臉，請正對鏡頭並確保光線充足！")
-                self.reset_dialog()
-        else: # status == "error"
-            # 攝影機讀取錯誤，警告使用者
-            messagebox.showwarning("⚠️ 相機錯誤", "有攝影機但無法讀取畫面，請確認相機未被其他程式佔用後再試。")
-            self.reset_dialog()
-
-    def reset_dialog(self):
-        self.pwd_entry.configure(state="normal")
-        self.ok_btn.configure(state="normal")
-        self.cancel_btn.configure(state="normal")
-        self.title_label.configure(text="🔑 需要安全驗證")
-        self.desc_label.configure(text="請輸入系統主密碼以確認執行此操作:")
-        self.pwd_entry.delete(0, "end")
-        self.pwd_entry.focus()
-
-    def detect_faces(self):
-        # 偵測鏡頭前人臉數量
-        try:
-            import cv2
-            import time
-            
-            # 使用 CAP_DSHOW 加快 Windows 上相機的開啟速度
-            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            if not cap.isOpened():
-                cap = cv2.VideoCapture(0)
-                if not cap.isOpened():
-                    return "no_camera", 0
-            
-            # 曝光與傳感器預熱校正 (Warm-up)
-            for _ in range(5):
-                cap.read()
-                time.sleep(0.02)
-                
-            ret, frame = cap.read()
-            cap.release()
-            
-            if not ret:
-                return "error", 0
-                
-            # 轉換灰階加速處理
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-            face_cascade = cv2.CascadeClassifier(cascade_path)
-            
-            if face_cascade.empty():
-                return "error", 0
-                
-            faces = face_cascade.detectMultiScale(
-                gray,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(50, 50)
-            )
-            return "success", len(faces)
-        except Exception:
-            return "error", 0
 
 class PasswordManagerApp(ctk.CTk):
     def __init__(self):
@@ -264,15 +179,8 @@ class PasswordManagerApp(ctk.CTk):
         self.max_attempts = 10
         self.entries = []
         
-        # 初始化清單中渲染的 Entry 元件參考，用於背景密碼安全隱藏監控
-        self.rendered_entries = []
-        self._camera_detecting = False
-        
         # 初始顯示登入畫面
         self.show_login_screen()
-        
-        # 啟動背景明文密碼監控輪詢
-        self.monitor_visible_passwords()
         
     def center_window(self, width, height):
         # 將視窗置中顯示
@@ -286,109 +194,6 @@ class PasswordManagerApp(ctk.CTk):
         # 清除當前視窗的所有元件
         for widget in self.winfo_children():
             widget.destroy()
-
-    def has_any_visible_passwords(self):
-        # 檢查目前是否有任何明文顯示的密碼
-        if not hasattr(self, "rendered_entries"):
-            return False
-        for entry_data, entry_widget in self.rendered_entries:
-            try:
-                if entry_widget.winfo_exists() and entry_widget.cget("show") == "":
-                    return True
-            except Exception:
-                pass
-        return False
-
-    def hide_all_passwords(self):
-        # 將所有明文顯示的密碼恢復為遮罩狀態 (隱藏)
-        if not hasattr(self, "rendered_entries"):
-            return
-        for entry_data, entry_widget in self.rendered_entries:
-            try:
-                if entry_widget.winfo_exists() and entry_widget.cget("show") == "":
-                    entry_widget.configure(state="normal")
-                    entry_widget.configure(show="*")
-                    entry_widget.configure(state="readonly")
-            except Exception:
-                pass
-
-    def monitor_visible_passwords(self):
-        # 定期監控是否有明文密碼，並在人臉消失或有多人時自動隱藏
-        if self.has_any_visible_passwords():
-            # 有明文密碼，在背景啟動相機臉部偵測
-            self.detect_faces_background()
-        
-        # 每 3 秒檢查一次
-        self.after(3000, self.monitor_visible_passwords)
-
-    def detect_faces_background(self):
-        # 在背景執行人臉偵測，避免阻塞主執行緒
-        import threading
-        
-        # 如果已經在偵測中，就先跳過，避免重複開啟相機
-        if getattr(self, "_camera_detecting", False):
-            return
-            
-        self._camera_detecting = True
-        
-        def thread_target():
-            status, face_count = self.detect_faces_check()
-            self._camera_detecting = False
-            
-            # 如果偵測結果異常，回到主執行緒安全地隱藏密碼
-            if status == "success" and face_count != 1:
-                self.after(0, lambda: self.handle_background_warning(face_count))
-
-        threading.Thread(target=thread_target, daemon=True).start()
-
-    def handle_background_warning(self, face_count):
-        # 處理背景檢測異常：隱藏密碼並提醒使用者
-        if self.has_any_visible_passwords():
-            self.hide_all_passwords()
-            if face_count >= 2:
-                messagebox.showwarning("🚨 旁窺警報", f"偵測到有 {face_count} 個人臉在相機範圍內！\n系統已自動隱藏顯示中的密碼以防洩漏。")
-            else:
-                messagebox.showinfo("🔒 自動安全防護", "偵測不到人臉（使用者可能已暫時離開），已自動將密碼隱藏。")
-
-    def detect_faces_check(self):
-        # 背景靜態偵測鏡頭前的人臉數量，無 UI 阻塞
-        try:
-            import cv2
-            import time
-            
-            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            if not cap.isOpened():
-                cap = cv2.VideoCapture(0)
-                if not cap.isOpened():
-                    return "no_camera", 0
-            
-            # 背景快速校正預熱 (3次讀取即可)
-            for _ in range(3):
-                cap.read()
-                time.sleep(0.01)
-                
-            ret, frame = cap.read()
-            cap.release()
-            
-            if not ret:
-                return "error", 0
-                
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-            face_cascade = cv2.CascadeClassifier(cascade_path)
-            
-            if face_cascade.empty():
-                return "error", 0
-                
-            faces = face_cascade.detectMultiScale(
-                gray,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(50, 50)
-            )
-            return "success", len(faces)
-        except Exception:
-            return "error", 0
 
     # ==================== 登入畫面 ====================
     def show_login_screen(self):
@@ -598,16 +403,24 @@ class PasswordManagerApp(ctk.CTk):
 
     # ==================== 分頁一：查詢與管理 ====================
     def create_list_tab(self):
+        # 顯示彈出式安全提示
+        messagebox.showwarning("安全提示", "⚠️ 請先觀察周圍是否有人在看！")
+        
         self.main_container.grid_columnconfigure(0, weight=1)
-        self.main_container.grid_rowconfigure(2, weight=1) # 讓 scroll frame 自動填滿
+        self.main_container.grid_rowconfigure(3, weight=1) # 讓 scroll frame 自動填滿
         
         # 標題與簡介
         title_label = ctk.CTkLabel(self.main_container, text="📋 已儲存的密碼清單", font=("Microsoft JhengHei", 20, "bold"))
         title_label.grid(row=0, column=0, sticky="w", pady=(0, 10))
         
+        # 提示橫幅
+        warning_label = ctk.CTkLabel(self.main_container, text="⚠️ 安全提示：請時刻觀察周圍是否有人在看！", 
+                                     font=("Microsoft JhengHei", 13, "bold"), text_color="#e67e22")
+        warning_label.grid(row=1, column=0, sticky="w", pady=(0, 10))
+        
         # 搜尋區域
         search_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
-        search_frame.grid(row=1, column=0, sticky="ew", pady=(0, 15))
+        search_frame.grid(row=2, column=0, sticky="ew", pady=(0, 15))
         search_frame.grid_columnconfigure(0, weight=1)
         
         self.search_entry = ctk.CTkEntry(search_frame, placeholder_text="🔍 輸入關鍵字以即時篩選帳號或網站...", height=35)
@@ -616,16 +429,15 @@ class PasswordManagerApp(ctk.CTk):
         
         # 捲動視窗容器 (Scrollable Frame)
         self.scroll_frame = ctk.CTkScrollableFrame(self.main_container)
-        self.scroll_frame.grid(row=2, column=0, sticky="nsew")
+        self.scroll_frame.grid(row=3, column=0, sticky="nsew")
         
-        # 載入所有資料並呈現在列表中
+        # 載入所有資料並呈呈現列表中
         self.render_list(self.entries)
 
     def render_list(self, items_to_render):
         # 清空舊有的列表項目
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
-        self.rendered_entries = []
             
         if not items_to_render:
             empty_label = ctk.CTkLabel(self.scroll_frame, text="📭 沒有找到符合的紀錄", font=("Microsoft JhengHei", 14), text_color="gray")
@@ -666,13 +478,10 @@ class PasswordManagerApp(ctk.CTk):
             pwd_entry.configure(state="readonly")
             pwd_entry.pack(side="left", fill="x", expand=True)
             
-            # 儲存元件參考以供背景人臉偵測監控使用
-            self.rendered_entries.append((entry, pwd_entry))
-            
             # 切換顯示/隱藏按鈕
             eye_btn = ctk.CTkButton(pwd_container, text="👁️", width=25, height=25, fg_color="transparent", 
-                                    hover_color=("#dcdcdc", "#333333"), text_color=("black", "white"),
-                                    command=lambda p=pwd_entry: VerifyMasterPasswordDialog(self, lambda: self.toggle_visible(p)))
+                                    hover_color=("#dcdcdc", "#333333"), text_color=("black", "white"))
+            eye_btn.configure(command=lambda p=pwd_entry, b=eye_btn: VerifyMasterPasswordDialog(self, lambda: self.toggle_visible(p, b)))
             eye_btn.pack(side="right", padx=2)
             
             # 3. 功能操作按鈕區
@@ -703,15 +512,52 @@ class PasswordManagerApp(ctk.CTk):
                                     command=lambda e=entry: VerifyMasterPasswordDialog(self, lambda: self.delete_entry(e)))
             del_btn.pack(side="left", padx=3)
 
-    def toggle_visible(self, entry_widget):
-        # 切換密碼顯示狀態
+    def toggle_visible(self, entry_widget, eye_btn):
+        # 切換密碼顯示狀態，並啟動 15 秒倒數計時
         state = entry_widget.cget("show")
         entry_widget.configure(state="normal")
         if state == "*":
+            # 顯示密碼
             entry_widget.configure(show="")
+            # 啟動 15 秒倒數計時
+            self.start_countdown(entry_widget, eye_btn, 15)
         else:
+            # 手動隱藏密碼
             entry_widget.configure(show="*")
+            eye_btn.configure(text="👁️")
         entry_widget.configure(state="readonly")
+
+    def start_countdown(self, entry_widget, eye_btn, seconds_left):
+        # 遞迴更新倒數計時器
+        try:
+            # 確保視窗元件依然存在
+            if not entry_widget.winfo_exists() or not eye_btn.winfo_exists():
+                return
+                
+            # 若使用者在此期間手動點擊隱藏，則停止計時
+            if entry_widget.cget("show") == "*":
+                eye_btn.configure(text="👁️")
+                return
+
+            if seconds_left > 0:
+                eye_btn.configure(text=f"{seconds_left}s")
+                self.after(1000, lambda: self.start_countdown(entry_widget, eye_btn, seconds_left - 1))
+            else:
+                self.hide_password(entry_widget, eye_btn)
+        except Exception:
+            pass
+
+    def hide_password(self, entry_widget, eye_btn):
+        # 自動將密碼改回隱藏狀態
+        try:
+            if entry_widget.winfo_exists():
+                entry_widget.configure(state="normal")
+                entry_widget.configure(show="*")
+                entry_widget.configure(state="readonly")
+            if eye_btn.winfo_exists():
+                eye_btn.configure(text="👁️")
+        except Exception:
+            pass
 
     def copy_to_clipboard(self, text, message):
         # 複製內容到系統剪貼簿
