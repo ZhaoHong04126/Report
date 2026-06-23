@@ -29,7 +29,7 @@ def system_login():
 def AP(Account, Password):
     # 將帳號與密碼儲存到指定桌面的文字檔中
     # 讓 Python 不亂編譯
-    file_path = r"C:\Users\USER\OneDrive\Desktop\python\Report\passwords.txt"
+    file_path = r"C:\Users\USER\OneDrive\Desktop\Report\passwords.txt"
     
     with open(file_path, "a", encoding="utf-8") as file:
         file.write(f"帳號: {Account} | 密碼: {Password}\n")
